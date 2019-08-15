@@ -7,6 +7,10 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.StaticHandler
+import java.util.*
+import java.lang.ProcessBuilder.Redirect
+
+
 
 
 class MainVerticle : AbstractVerticle() {
@@ -27,13 +31,33 @@ class MainVerticle : AbstractVerticle() {
   private fun createRouter() = Router.router(vertx).apply {
     // route().handler(CookieHandler.create())
     // route().handler(SessionHandler.create(sessionStore))
-    val uploadDir = System.getenv("upload_dir") ?: "/tmp/vertx"
+    val uploadDir = System.getenv("upload_dir") ?: "/home/quangio/dev/hackathon/nn/images"
     route().handler(BodyHandler.create(uploadDir))
     route().handler(StaticHandler.create())
     route().handler(
       CorsHandler.create("*")
     )
+    route("/").handler{
+      it.response().end("abc")
+    }
     route("/form").handler { ctx ->
+      println(ctx.fileUploads().first().uploadedFileName())
+      Runtime.getRuntime().exec("mv ${ctx.fileUploads().first().uploadedFileName()} /home/quangio/dev/hackathon/nn/images/phuc.jpg")
+      // println("OK")
+
+      val cmd = arrayOf("/bin/bash", "-c", "cd /home/quangio/dev/hackathon/nn/images; bash ./main.sh")
+      /*
+      try {
+        val p = Runtime.getRuntime().exec(cmd)
+      } catch (e: Exception) {
+        e.printStackTrace()
+      }
+
+       */
+      val pb = ProcessBuilder(cmd.toList())
+      pb.redirectOutput(Redirect.INHERIT)
+      pb.redirectError(Redirect.INHERIT)
+      pb.start()
       ctx.response().end("ABC")
     }
   }
